@@ -533,16 +533,36 @@
     function determineEnding() {
       const t = attributes.提纯底子;
       const l = attributes.乐子人属性;
-      const k = attributes.看破程度;
-      if (t >= 22 && flag14_BorE) return 'END4';
-      if (k >= 20 && flag17_C) return 'END6';
-      if (k >= 16 && t < 18 && flag17_D) return 'END5';
-      if (t >= 24 && l <= 3) return 'END3';
-      if (k >= 18 && t < 12) return 'END1';
-      if (l >= 16 && k < 12) return 'END2';
+      let k = attributes.看破程度;
+
+      // 隐藏分水岭：16题选E，END6看破门槛降低2
+      if (flag16_E && flag17_C) {
+        k += 2; // 内部调整，不影响显示
+      }
+
+      // 优先级判定
+      // 1. END3 极端转唯+回踩组合
+      if (flag14_BorE && flag17_B) return 'END3';
+      // 2. END4 转唯标记
+      if (t >= 20 && flag14_BorE) return 'END4';
+      // 3. END6 百毒不侵
+      if (flag17_C && (k >= 18 || (l >= 12 && k >= 15))) return 'END6';
+      // 4. END5 体面告别
+      if ((flag17_D && k >= 14 && t < 16) || (flag17_A && k >= 10)) return 'END5';
+      // 5. END3 纯数值
+      if (t >= 22 && l <= 2) return 'END3';
+      // 6. END4 高提纯保底
+      if (t >= 24) return 'END4';
+      // 7. END1
+      if (k >= 16 && t < 10) return 'END1';
+      // 8. END2
+      if (l >= 15 && k < 10) return 'END2';
+      // 兜底
       if (t >= 18) return 'END4';
+      if (l >= 12) return 'END2';
       return 'END5';
     }
+      
 
     function renderEnding(endingKey) {
       const e = endings[endingKey];
