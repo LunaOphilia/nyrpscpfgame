@@ -94,6 +94,33 @@
       background: #e8ddcf;
       transform: translateY(0px);
     }
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      margin-top: 1.8rem;
+    }
+    .back-btn {
+      background: transparent;
+      border: 1px solid #c9b69b;
+      padding: 0.6rem 2rem;
+      border-radius: 2rem;
+      font-size: 0.9rem;
+      color: #4a3b2f;
+      cursor: pointer;
+      background: #ffffff;
+      transition: 0.2s;
+      font-family: inherit;
+      letter-spacing: 1px;
+    }
+    .back-btn:hover {
+      background: #f3ede5;
+      border-color: #a58e72;
+    }
+    .back-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
     .disclaimer-card {
       text-align: center;
       padding: 1rem 0;
@@ -303,7 +330,7 @@
         id: 5,
         text: "5. 一千个人心目中有一千个家产，你最爱的风味类型是——",
         options: [
-          { text: "A. 现背好吃好吃，他们的未来就应该这样发展", 提纯底子: 1, 乐子人属性: 0, 看破程度: 0 },
+          { text: "A. 现背好吃好吃，他们的未来就应该这样发展", 提纯底子: 0.5, 乐子人属性: 0, 看破程度: 0 },
           { text: "B. 姐狗yummyyummy，就这个训狗爽吃", 提纯底子: 1, 乐子人属性: 0, 看破程度: 0 },
           { text: "C. 天神攻袭来，就爱这种绝对的征服", 提纯底子: 1, 乐子人属性: 0, 看破程度: 0 },
           { text: "D. 生怀流火葬场，越狗血越美味", 提纯底子: 1, 乐子人属性: 0, 看破程度: 0 },
@@ -368,7 +395,7 @@
         id: 11,
         text: "11. 双人的消息和物料渐渐远去，但是嗑糖的热情还是没有消减，这时传来了产品其中一方和无关人士的旧绯闻，你的反应是——",
         options: [
-          { text: "A. 管我屁屁事，左位唯爱右位，右位唯爱左位，是唯爱，你懂什么？", 提纯底子: 0, 乐子人属性: 0, 看破程度: 2 },
+          { text: "A. 管我屁屁事，左位唯爱友位，右位唯爱左位，是唯爱，你懂是什么", 提纯底子: 0, 乐子人属性: 0, 看破程度: 2 },
           { text: "B. 那又怎样，ta不过是唯相方性恋罢了，又不是甄姬，过往都是浮云", 提纯底子: 0, 乐子人属性: 0, 看破程度: 1 },
           { text: "C. 血糖嗑起来，烂人真心，爱上相方的样子果然不一样啊，双标好美味吧", 提纯底子: -1, 乐子人属性: 2, 看破程度: 0 },
           { text: "D. 正规人士袭来，广场澄清带话题不限圈转发抽奖一条龙", 提纯底子: 2, 乐子人属性: 0, 看破程度: 0 }
@@ -513,7 +540,41 @@
     let flag17_D = false;
     let agreed = false;
 
+    // 历史快照（用于上一题功能）
+    let historySnapshots = [];
+
     const app = document.getElementById('app');
+
+    // 保存当前状态快照
+    function saveSnapshot() {
+      historySnapshots.push({
+        index: currentQuestionIndex,
+        attributes: { ...attributes },
+        flags: {
+          flag14_BorE,
+          flag16_E,
+          flag17_A,
+          flag17_B,
+          flag17_C,
+          flag17_D
+        }
+      });
+    }
+
+    // 恢复到上一个快照
+    function restoreLastSnapshot() {
+      if (historySnapshots.length === 0) return false;
+      const snap = historySnapshots.pop();
+      currentQuestionIndex = snap.index;
+      attributes = { ...snap.attributes };
+      flag14_BorE = snap.flags.flag14_BorE;
+      flag16_E = snap.flags.flag16_E;
+      flag17_A = snap.flags.flag17_A;
+      flag17_B = snap.flags.flag17_B;
+      flag17_C = snap.flags.flag17_C;
+      flag17_D = snap.flags.flag17_D;
+      return true;
+    }
 
     function resetGame() {
       currentQuestionIndex = 0;
@@ -524,6 +585,7 @@
       flag17_B = false;
       flag17_C = false;
       flag17_D = false;
+      historySnapshots = [];
       renderQuestion();
     }
 
@@ -544,29 +606,18 @@
       const l = attributes.乐子人属性;
       let k = attributes.看破程度;
 
-      // 隐藏分水岭：16题选E，END6看破门槛降低2
       if (flag16_E && flag17_C) {
-        k += 2; // 内部调整，不影响显示
+        k += 2;
       }
 
-      // 优先级判定
-      // 1. END3 极端转唯+回踩组合
       if (flag14_BorE && flag17_B) return 'END3';
-      // 2. END4 转唯标记
       if (t >= 20 && flag14_BorE) return 'END4';
-      // 3. END6 百毒不侵
       if (flag17_C && (k >= 18 || (l >= 12 && k >= 15))) return 'END6';
-      // 4. END5 体面告别
       if ((flag17_D && k >= 14 && t < 16) || (flag17_A && k >= 10)) return 'END5';
-      // 5. END3 纯数值
       if (t >= 22 && l <= 2) return 'END3';
-      // 6. END4 高提纯保底
       if (t >= 24) return 'END4';
-      // 7. END1
       if (k >= 16 && t < 10) return 'END1';
-      // 8. END2
       if (l >= 15 && k < 10) return 'END2';
-      // 兜底
       if (t >= 18) return 'END4';
       if (l >= 12) return 'END2';
       return 'END5';
@@ -609,6 +660,7 @@
       document.getElementById('agreeBtn').addEventListener('click', () => {
         agreed = true;
         currentQuestionIndex = 0;
+        historySnapshots = [];
         renderQuestion();
       });
       document.getElementById('refuseHint').addEventListener('click', () => {
@@ -631,6 +683,7 @@
       q.options.forEach((opt, idx) => {
         optsHtml += `<button class="option-btn" data-index="${idx}">${opt.text}</button>`;
       });
+
       const html = `
         <div class="header">
           <div class="title">那鱼RPS CPF</div>
@@ -639,16 +692,35 @@
         <div class="progress">${progressText}</div>
         <div class="question-text">${q.text}</div>
         <div class="options">${optsHtml}</div>
+        <div class="nav-buttons">
+          <button class="back-btn" id="backBtn" ${currentQuestionIndex === 0 ? 'disabled' : ''}>← 上一题</button>
+        </div>
       `;
       app.innerHTML = html;
+
+      // 绑定选项点击
       document.querySelectorAll('.option-btn').forEach(btn => {
         btn.addEventListener('click', function() {
           const index = parseInt(this.dataset.index);
-          applyOption(q.options[index]);
+          const selectedOption = q.options[index];
+          // 前进时保存当前状态快照
+          saveSnapshot();
+          applyOption(selectedOption);
           currentQuestionIndex++;
           renderQuestion();
         });
       });
+
+      // 绑定上一题按钮
+      const backBtn = document.getElementById('backBtn');
+      if (backBtn) {
+        backBtn.addEventListener('click', () => {
+          if (currentQuestionIndex > 0 && historySnapshots.length > 0) {
+            restoreLastSnapshot();
+            renderQuestion();
+          }
+        });
+      }
     }
 
     renderQuestion();
